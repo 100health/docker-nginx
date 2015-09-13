@@ -55,4 +55,22 @@ http {
   include /etc/nginx/sites-enabled/*.conf;
 }
 
+<% if ENV['UPSTREAM_TCP_SERVERS'] %>
+stream {
+  <% (ENV['UPSTREAM_TCP_SERVERS']).split(',').each do |server| %>
+
+  # One port goes to 1 container, just like on aptible
+  upstream exposed-port-<%= server.split(':')[1] %> {
+    server <%= server %>;
+  }
+
+  server {
+    listen <%= server.split(':')[1] %>;
+    proxy_pass exposed-port-<%= server.split(':')[1] %>;
+  }
+
+  <% end %>
+}
+<% end %>
+
 daemon off;
